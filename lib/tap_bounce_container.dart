@@ -28,16 +28,19 @@ class _TapBounceContainerState extends State<TapBounceContainer>
       duration: animationDuration,
       lowerBound: 0.0,
       upperBound: 0.04,
-    )..addListener(() {
-        setState(() {});
-      });
+    )..addListener(_listener);
     super.initState();
   }
 
   @override
   void dispose() {
     super.dispose();
+    _controller.removeListener(_listener);
     _controller.dispose();
+  }
+
+  void _listener() {
+    setState(() {});
   }
 
   @override

@@ -76,8 +76,7 @@ class TopSnackBar extends StatefulWidget {
   _TopSnackBarState createState() => _TopSnackBarState();
 }
 
-class _TopSnackBarState extends State<TopSnackBar>
-    with SingleTickerProviderStateMixin {
+class _TopSnackBarState extends State<TopSnackBar> with SingleTickerProviderStateMixin {
   late Animation offsetAnimation;
   late AnimationController animationController;
   double? topPosition;
@@ -85,11 +84,6 @@ class _TopSnackBarState extends State<TopSnackBar>
   @override
   void initState() {
     topPosition = widget.additionalTopPadding;
-    _setupAndStartAnimation();
-    super.initState();
-  }
-
-  void _setupAndStartAnimation() async {
     animationController = AnimationController(
       vsync: this,
       duration: widget.showOutAnimationDuration,
@@ -107,23 +101,33 @@ class _TopSnackBarState extends State<TopSnackBar>
         curve: Curves.elasticOut,
         reverseCurve: Curves.linearToEaseOut,
       ),
-    )..addStatusListener((status) async {
-        if (status == AnimationStatus.completed) {
-          await Future.delayed(widget.displayDuration);
-          animationController.reverse();
-          if (mounted) {
-            setState(() {
-              topPosition = 0;
-            });
-          }
-        }
-
-        if (status == AnimationStatus.dismissed) {
-          widget.onDismissed.call();
-        }
-      });
+    )..addStatusListener(_statusListener);
 
     animationController.forward();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    offsetAnimation.removeStatusListener(_statusListener);
+    animationController.dispose();
+    super.dispose();
+  }
+
+  void _statusListener(AnimationStatus status) async {
+    if (status == AnimationStatus.completed) {
+      await Future.delayed(widget.displayDuration);
+      animationController.reverse();
+      if (mounted) {
+        setState(() {
+          topPosition = 0;
+        });
+      }
+    }
+
+    if (status == AnimationStatus.dismissed) {
+      widget.onDismissed.call();
+    }
   }
 
   @override
